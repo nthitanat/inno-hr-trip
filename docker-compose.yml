@@ -1,0 +1,61 @@
+version: "3.9"
+
+# =============================================================================
+# docker-compose.yml
+# All tunable settings live in .env — this file just wires them together.
+#
+# Usage (Streamlit web UI — default):
+#   docker compose up --build
+#   Open http://localhost:8501
+#
+# Usage (CLI pipeline — opt-in via profile):
+#   1. Drop input file into  ./input/
+#   2. docker compose --profile cli up pipeline --build
+#   3. Collect result from   ./output/
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # web — Streamlit UI (upload file → run pipeline → download result)
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      streamlit run app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+      --server.headless=true
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # pipeline — original CLI runner (opt-in: docker compose --profile cli up pipeline)
+  # ---------------------------------------------------------------------------
+  pipeline:
+    profiles: ["cli"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Pass every variable from .env straight into the container
+    env_file:
+      - .env
+
+    # Override the I/O paths so they resolve to /data inside the container.
+    # The actual filenames still come from .env (INPUT_FILE / OUTPUT_FILE).
+    environment:
+      INPUT_FILE:  /data/${INPUT_FILE}
+      OUTPUT_FILE: /data/${OUTPUT_FILE}
+
+    volumes:
+      # Mount project root as /data so input/ and output/ are accessible
+      - type: bind
+        source: .
+        target: /data
+        read_only: false
+
+    # Container exits when pipeline finishes — no restart needed
+    restart: "no"

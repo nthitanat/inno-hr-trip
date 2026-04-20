@@ -1,0 +1,15 @@
+[theme]
+# Primary accent — gold CTA / badges / highlights
+primaryColor             = "#C9A84C"
+
+# Page background — neutral light so tables/forms stay readable
+backgroundColor          = "#F4F4F4"
+
+# Sidebar / secondary panels — uses navy via CSS override
+secondaryBackgroundColor = "#122D4B"
+
+# Body text
+textColor                = "#1C1C2E"
+
+# Font family: "sans serif" | "serif" | "monospace"
+font                     = "sans serif"
